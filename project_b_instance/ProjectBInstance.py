@@ -12,7 +12,6 @@ class ProjectBInstance:
     def __init__(self, project_b_path):
         self.project_b_path = project_b_path
         self.file_tree = {}
-        self.last_commit_id = ""
         self.project_b_remote = None
         self.initialize_project_b_instance()
 
@@ -20,20 +19,19 @@ class ProjectBInstance:
         if not os.path.exists(self.project_b_path):
             raise ValueError(f"The path {self.project_b_path} does not exist.")
         
-        self.project_b_remote = ProjectBChangesTracker(self.project_b_path, self.last_commit_id)
+        self.project_b_remote = ProjectBChangesTracker(self.project_b_path, "") # initial commit id is empty
         # self.file_tree = self.change_tracker.build_file_tree(self.project_b_path)
         self.apply_updates()
-        self.last_commit_id = os.popen(f'git -C {self.project_b_path} rev-parse HEAD').read().strip()
+        self.project_b_remote.last_commit_id = os.popen(f'git -C {self.project_b_path} rev-parse HEAD').read().strip()
 
     def add_file_to_db(self, file_path):
         content = self.project_b_remote.read_file_content(file_path)
         client = chromadb.PersistentClient(path=settings.CHRMADB_PERSIST_DIR)
         collection = client.get_or_create_collection(self.project_b_path.replace('/','.')[3:-1])
-        unique_id = str(uuid.uuid4())  # Generate a unique ID using uuid
         collection.add(
             documents=[content],
             metadatas=[{"path": file_path}],
-            ids=[unique_id]
+            ids=[file_path]
         )
 
     def get_file_from_db(self, file_path):
@@ -50,29 +48,26 @@ class ProjectBInstance:
         new_content = self.project_b_remote.read_file_content(file_path)
         client = chromadb.PersistentClient(path=settings.CHRMADB_PERSIST_DIR)
         collection = client.get_collection(self.project_b_path.replace('/','.')[3:-1])
-        file_id = collection.query(metadata={"path": file_path}, n_results=1)['ids'][0]
         collection.update(
             documents=[new_content],
-            metadatas=[{"path": file_path}],
-            ids=[file_id]
+            ids=[file_path]
         )
 
     def move_file_in_db(self, file_path, new_path):
         content = self.project_b_remote.read_file_content(file_path)
         client = chromadb.PersistentClient(path=settings.CHRMADB_PERSIST_DIR)
         collection = client.get_collection(self.project_b_path.replace('/','.')[3:-1])
-        file_id = collection.query(metadata={"path": file_path}, n_results=1)['ids'][0]
-        collection.update(
+        collection.delete(ids=[file_path])
+        collection.add(
             documents=[content],
             metadatas=[{"path": new_path}],
-            ids=[file_id]
+            ids=[new_path]
         )
     
     def delete_file_from_db(self, file_path):
         client = chromadb.PersistentClient(path=settings.CHRMADB_PERSIST_DIR)
         collection = client.get_collection(self.project_b_path.replace('/','.')[3:-1])
-        file_id = collection.query(metadata={"path": file_path}, n_results=1)['ids'][0]
-        collection.delete(ids=[file_id])
+        collection.delete(ids=[file_path])
     
     def apply_updates(self):
         updates = self.project_b_remote.generate_update_list()
