@@ -16,23 +16,24 @@
       "program": "${workspaceFolder}/manage.py"
     },
     {
-      "name": "Django Test \"text\"",
+      "name": "Django Test \"project_b_instance\"",
       "type": "debugpy",
       "request": "launch",
       "args": [
-        "test", "text"
+        "test",
+        "project_b_instance"
       ],
       "django": true,
       "autoStartBrowser": false,
       "program": "${workspaceFolder}/manage.py"
     },
     {
-      "name": "Django Test \"text\" With pre deletion",
+      "name": "Django Test \"project_b_instance\" With pre deletion",
       "type": "debugpy",
       "request": "launch",
       "args": [
         "test",
-        "text"
+        "project_b_instance"
       ],
       "django": true,
       "autoStartBrowser": false,

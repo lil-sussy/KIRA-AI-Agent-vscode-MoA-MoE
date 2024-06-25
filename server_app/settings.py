@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
+CHRMADB_PERSIST_DIR = './chromadb/project_b_instances'
 import os
 from pathlib import Path
 
@@ -37,6 +38,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'corsheaders',
     'rest_framework',
+    
+    'project_b_instance',
+    'diagnosis_agent',
 ]
 
 MIDDLEWARE = [
