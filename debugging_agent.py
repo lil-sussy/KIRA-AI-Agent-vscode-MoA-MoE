@@ -4,13 +4,11 @@ import chain_of_thoughts as cot
 import os
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 
-initial_prompt = SystemMessage(content="""You are project analyst agent. You will be given a problem and file project tree, and your role is to figure out which files in the project would be relevant to look at in order to solve the problem. Follow each step and prompt like your life depends on it. Do not generate more content or try to go ahead. Things will make sense as they go. Answer each prompt as you go and not more.
-Your role is not to provide an answer or to write code. Your role is simply to figure out through a chain of thoughts which files in the project would be relevant to look at in order to solve the problem. Follow each steps and prompt like your life depends on it. Do not generate more content or try to go ahead. Things will make sens as they go. Answer each prompt as you go and not more.
-The problem will be in the form of a usery query for code improvement, or a but report (a copy of a terminal output), or a stack trace. It could also be a query to improve one specific function in one simple file.
-The project tree will be a list of files and directories.
+initial_prompt = SystemMessage(content="""You are project analyst agent. You will be given a problem and file project tree, and your role is to figure out which files in the project would be relevant to look at in order to solve the problem. 
+We will proceed step by step during this conversation, so for each message, limit yourself to each task and do not attempt to predit and go ahead of yourself.
 """)
 
-file_list_general_naive_diagnosis = SystemMessage(content="""On this first step you are simply task to diagnose the problem. What is the problem? What is the type of the user query ? Is it a stack trace ? A question on one simple file ? A refactoring of multiple files ?
+file_list_general_naive_diagnosis = HumanMessage(content="""On this first step you are simply task to diagnose the problem. What is the problem? What is the type of the user query ? Is it a stack trace ? A question on one simple file ? A refactoring of multiple files ?
 Do not write any code.
 Do not yet write any file or directory name. This is not what we are doing now.
 What's the diagnosis ? How do you understand the problem ?
@@ -59,7 +57,7 @@ class diagnosis_agent:
 
       def run_list_of_files(self):
           message_tree = [[initial_prompt, file_list_general_naive_diagnosis, HumanMessage(content=self.problem)]]
-          message_tree.append([file_list_generate_file_list, HumanMessage(content=self.generate_tree_output(self.repo_path))])
+          message_tree.append([file_list_generate_file_list, HumanMessage(content=self.generate_tree_output())])
           message_tree.append([file_list_format_file_list])
           answer, context = cot.run_chain(message_tree)
           return answer, context
@@ -71,7 +69,7 @@ class diagnosis_agent:
           message_list.append(diagnosis_reports_aggregation)
           for file in files:
               file_report = sub_agent_file_analysis(file, self.repo_path).run_file_analysis()
-              message_list.append(SystemMessage(content=file_report))
+              message_list.append(HumanMessage(content=file_report))
           message_tree = [message_list]
           message_tree.append([diagnosis_analysis_without_code])
           message_tree.append([diagnosis_partial_code])
@@ -81,13 +79,13 @@ class diagnosis_agent:
 
 
 # This one is out of the conversation flow (it is a sub-agent)
-file_analysis_first_step_understanding = SystemMessage(content="""Review the following file. Your role is to understand the code and understand the purpose of the file. What does a file like this typically does based on your knowledge. Give a detailed analysis of what the code of the whole file does.
+file_analysis_first_step_understanding = HumanMessage(content="""Review the following file. Your role is to understand the code and understand the purpose of the file. What does a file like this typically does based on your knowledge. Give a detailed analysis of what the code of the whole file does.
 Let's think step by step. What is the purpose of this file ? What is the purpose of each function ? What is the purpose of each class ? What is the purpose of each variable ? What is the purpose of each line of code ?""")
 
-file_analysis_second_step_analysis = SystemMessage(content="""Given your understanding of the file answer, the user's problem and its analysis, break down in a detail reasoning process what piece of this code in this are relevant to the raised problem. Highlight those elements. Base your reasoning on the analysis
+file_analysis_second_step_analysis = HumanMessage(content="""Given your understanding of the file answer, the user's problem and its analysis, break down in a detail reasoning process what piece of this code in this are relevant to the raised problem. Highlight those elements. Base your reasoning on the analysis
 Let's think step by step.""")
 
-file_analysis_third_step_diagnosis = SystemMessage(content="""
+file_analysis_third_step_diagnosis = HumanMessage(content="""
 Now that you have a break down of the relevant piece of code relevant to the problem diagnosis. Leverage a list of elements in this file and generate a detailed summary of those highlighted elements. Generate a report of this file selecting among the highlighted code the most relevant pieces to the problem diagnosis. Explain why you think this piece is relevant and will help diagnosing the problem.
 Generate a report of this file code.""")
 
@@ -104,3 +102,21 @@ class sub_agent_file_analysis:
           message_tree.append([file_analysis_third_step_diagnosis])
           answer, context = cot.run_chain(message_tree)          
           return answer
+
+
+import sys
+
+def main():
+    if len(sys.argv) < 3:
+        print("Error: This script requires two arguments.")
+        sys.exit(1)
+
+    first_argument = sys.argv[1]
+    second_argument = sys.argv[2]
+
+    diagnosis_agent_instance = diagnosis_agent(first_argument, second_argument)
+    answer = diagnosis_agent_instance.run_file_context_diagnosis()
+    print(answer)
+
+if __name__ == "__main__":
+    main()

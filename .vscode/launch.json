@@ -87,6 +87,28 @@
       "cwd": "${workspaceFolder}/frontend",
       "console": "integratedTerminal"
     },
+    {
+      "name": "[agent] Debugging project aware agent",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/project_analyst_agent.py",
+      "args": [
+        "no problem at first",
+        "./"
+      ],
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "[agent] Creation project aware agent",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/creation_agent.py",
+      "args": [
+        "I would like, for the agent 'creation_agent.py' to be able to review the context of the messages and the flow of messages of this chain of thought agent implementation. For example, I would like to generate a report, that would be a json file containing each message, their type. For each agent and sub agent.",
+        "./"
+      ],
+      "console": "integratedTerminal"
+    },
   ],
   "compounds": [
     {
