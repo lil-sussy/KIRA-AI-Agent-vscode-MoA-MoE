@@ -23,7 +23,14 @@ I insist on do not generate the whole code now, that will come after.
 file_list_generate_file_list = HumanMessage(content="""Now that you have a clear understanding of how to achieve this, given the file tree, what files in this project would you want to take a look at before generating any code ?
 Let's think step by step.""")
 
-file_list_format_file_list = HumanMessage(content="Reformulate your answer writing the files and directories relative paths separated by a comma. Do not use any space after the comma. Do not use any space before the comma. Do not use any space before or after the file or directory name. Do not write any unnecessary polite words or sentences. Do not write any code. Do not write any file or directory name that is not relevant to the problem. Only write the list of files formatted this way.")
+file_list_format_file_list = HumanMessage(content="""Reformulate your answer writing the files and directories relative paths separated by a comma. Do not use any space after the comma. Do not use any space before the comma. Do not use any space before or after the file or directory name. Do not write any unnecessary polite words or sentences. Do not write any code. Do not write any file or directory name that is not relevant to the problem. Only write the list of files formatted this way.
+Do NOT generate other content or polite answer other than the list of file paths
+The format should directly be :
+<No pre content>
+path/to/file1.py,path/to/file2.py,path/to/file3.py
+path/to/file4.py,path/to/file5.py
+...
+<No last content>""")
 
 
 
